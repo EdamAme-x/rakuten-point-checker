@@ -38,20 +38,28 @@ async function main(): Promise<void> {
   const loginButtonSelector = "#loginInner > p:nth-child(3) > input";
   await page.waitForSelector(loginButtonSelector);
 
+  const loginPromise = page.waitForNavigation(); 
   await Promise.all([
-    page.waitForNavigation(),
+    loginPromise,
     page.click(loginButtonSelector),
   ]);
 
   logger.info({}, "Logged successfully");
+  const redirectPromise = page.waitForNavigation(); 
+  await Promise.all([
+    redirectPromise,
+  ]);
 
-  const pointSelector =
-    "#wrapper > div:nth-child(9) > div > ul > li:nth-child(3) > div > div:nth-child(2) > a > span > div > div > div";
-  await page.waitForSelector(pointSelector, { timeout: 3000 });
+  const redirectedUrl = page.url();
+  logger.info({ redirectedUrl }, "Redirected to: {redirectedUrl}".replace("{redirectedUrl}", redirectedUrl));
 
   try {
-    const result: string = await page.evaluate((pointSelector) => {
-      const results = Array.from(document.querySelectorAll(pointSelector));
+    const resultsSelector =
+      "#wrapper > div:nth-child(9) > div > ul > li:nth-child(3) > div > div:nth-child(2) > a > span > div > div > div";
+    await page.waitForSelector(resultsSelector, { timeout: 3000 });
+
+    const result: string = await page.evaluate((resultsSelector) => {
+      const results = Array.from(document.querySelectorAll(resultsSelector));
 
       if (results.length === 0) {
         logger.info({}, "Login failed. Closing browser...");
@@ -59,7 +67,7 @@ async function main(): Promise<void> {
       }
 
       return results[0].innerHTML;
-    }, pointSelector);
+    }, resultsSelector);
 
     logger.info({ result }, "Result: point is {result}");
   } catch (error) {
