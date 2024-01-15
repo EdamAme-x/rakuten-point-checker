@@ -17,8 +17,8 @@ const logger = createLogger(
 
 async function main(): Promise<void> {
   const loginConfig = {
-    username: "btakethis1@gmail.com",
-    password: "1openthedoor",
+    username: "haruhisasami@gmail.com",
+    password: "lolmmlol777",
   } as const;
 
   const browser = await puppeteer.launch({
@@ -38,48 +38,92 @@ async function main(): Promise<void> {
   const loginButtonSelector = "#loginInner > p:nth-child(3) > input";
   await page.waitForSelector(loginButtonSelector);
 
-  const loginPromise = page.waitForNavigation(); 
-  await Promise.all([
-    loginPromise,
-    page.click(loginButtonSelector),
-  ]);
+  const loginPromise = page.waitForNavigation();
+  await Promise.all([loginPromise, page.click(loginButtonSelector)]);
 
   logger.info({}, "Logged successfully");
-  const redirectPromise = page.waitForNavigation(); 
-  await Promise.all([
-    redirectPromise,
-  ]);
 
-  const redirectedUrl = page.url();
-  logger.info({ redirectedUrl }, "Redirected to: {redirectedUrl}".replace("{redirectedUrl}", redirectedUrl));
+  const bodySelector = "body";
 
-  try {
-    const resultsSelector =
-      "#wrapper > div:nth-child(9) > div > ul > li:nth-child(3) > div > div:nth-child(2) > a > span > div > div > div";
-    await page.waitForSelector(resultsSelector, { timeout: 3000 });
+  await page.waitForSelector(bodySelector, { timeout: 30000 });
 
-    const result: string = await page.evaluate((resultsSelector) => {
-      const results = Array.from(document.querySelectorAll(resultsSelector));
+  const bodyText = await page.evaluate((bodySelector) => document.body.innerHTML, bodySelector);
 
-      if (results.length === 0) {
-        logger.info({}, "Login failed. Closing browser...");
-        throw new Error("No results found");
+  if (bodyText.includes(`<em class="em">次へ</em>`)) {
+    logger.info({}, "Checking next page...");
+    const nextSelector = "form p.submit > input";
+
+    await page.waitForSelector(nextSelector);
+    const nextPromise = page.waitForNavigation();
+    await Promise.all([nextPromise, page.click(nextSelector)]);
+
+    logger.info({}, "Next page is checked");
+
+    const bodySelector2 = "body";
+
+    await page.waitForSelector(bodySelector2, { timeout: 30000 });
+  
+    const bodyText2 = await page.evaluate((bodySelector2) => document.body.innerHTML, bodySelector2);
+
+    if (bodyText2.includes(`<em class="em">次へ</em>`)) {
+      logger.warn({}, "Again to check next page");
+
+      const nextSelector2 = "form p.submit > input";
+
+      await page.waitForSelector(nextSelector2);
+
+      const nextPromise2 = page.waitForNavigation();
+
+      await Promise.all([nextPromise2, page.click(nextSelector2)]);
+
+      logger.info({}, "Next page is again checked");
+
+      const bodySelector3 = "body";
+
+      await page.waitForSelector(bodySelector3, { timeout: 30000 });
+
+      const bodyText3 = await page.evaluate((bodySelector3) => document.body.innerHTML, bodySelector3);
+
+    }
+  }
+
+  setTimeout(async () => {
+    const redirectedUrl = page.url();
+    if (redirectedUrl !== "https://grp01.id.rakuten.co.jp/rms/nid/logini") {
+      logger.info({ redirectedUrl }, "Redirected to: " + redirectedUrl);
+
+      const pointSelector =
+        "#wrapper > div:nth-child(9) > div > ul > li:nth-child(3) > div > div:nth-child(2) > a > span > div > div > div";
+      await page.waitForSelector(pointSelector, { timeout: 3000 });
+
+      try {
+        const result: string = await page.evaluate((pointSelector) => {
+          const points = Array.from(document.querySelectorAll(pointSelector));
+          console.log(document.body.innerHTML);
+
+          if (points.length === 0) {
+            logger.warn({}, "Point not found");
+            throw new Error("No points found");
+          }
+
+          return points[0].innerHTML;
+        }, pointSelector);
+
+        logger.info({ result }, "Result: point is {result}".replace("{result}", result));
+      } catch (error) {
+        logger.error(error, "Failed to evaluate results");
       }
+    } else {
+      logger.warn({}, "This account does not have any point");
+    }
 
-      return results[0].innerHTML;
-    }, resultsSelector);
-
-    logger.info({ result }, "Result: point is {result}");
-  } catch (error) {
-    logger.error(error, "Failed to evaluate results");
-  } finally {
     try {
       await browser.close();
       logger.info({}, "Browser closed");
     } catch (error) {
       logger.error(error, "Failed to close browser");
     }
-  }
+  }, 3000);
 }
 
 main();
