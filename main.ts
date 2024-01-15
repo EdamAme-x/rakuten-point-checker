@@ -35,38 +35,42 @@ async function main(): Promise<void> {
   logger.info({}, "Typed username and password");
 
   logger.info({}, "Logged...");
-  const allResultsSelector = "#loginInner > p:nth-child(3) > input";
-  await page.waitForSelector(allResultsSelector);
-  await page.click(allResultsSelector);
+  const loginButtonSelector = "#loginInner > p:nth-child(3) > input";
+  await page.waitForSelector(loginButtonSelector);
 
-  const resultsSelector =
+  await Promise.all([
+    page.waitForNavigation(),
+    page.click(loginButtonSelector),
+  ]);
+
+  logger.info({}, "Logged successfully");
+
+  const pointSelector =
     "#wrapper > div:nth-child(9) > div > ul > li:nth-child(3) > div > div:nth-child(2) > a > span > div > div > div";
-  await page.waitForSelector(resultsSelector, { timeout: 3000 });
-
-  const result: string = await page.evaluate((resultsSelector) => {
-    if (Array.from(document.querySelectorAll(resultsSelector)).length === 0) {
-      try {
-        logger.info({}, "No results found");
-        browser.close().then(() => {
-          logger.info({}, "Browser closed");
-        });
-      } catch (error) {
-        logger.error(error, "Failed to close browser");
-      }
-    }
-
-    const result = Array.from(document.querySelectorAll(resultsSelector))[0];
-
-    return result.innerHTML;
-  }, resultsSelector)[0];
-
-  logger.info({ result }, "Result: point is {result}");
+  await page.waitForSelector(pointSelector, { timeout: 3000 });
 
   try {
-    await browser.close();
-    logger.info({}, "Browser closed");
+    const result: string = await page.evaluate((pointSelector) => {
+      const results = Array.from(document.querySelectorAll(pointSelector));
+
+      if (results.length === 0) {
+        logger.info({}, "Login failed. Closing browser...");
+        throw new Error("No results found");
+      }
+
+      return results[0].innerHTML;
+    }, pointSelector);
+
+    logger.info({ result }, "Result: point is {result}");
   } catch (error) {
-    logger.error(error, "Failed to close browser");
+    logger.error(error, "Failed to evaluate results");
+  } finally {
+    try {
+      await browser.close();
+      logger.info({}, "Browser closed");
+    } catch (error) {
+      logger.error(error, "Failed to close browser");
+    }
   }
 }
 
