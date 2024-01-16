@@ -43,11 +43,11 @@ async function main(): Promise<void> {
 
     switch (optionSelect.trim()) {
         case "1":
-            logger.info({}, "スタンドアップポイントチェック");
+            logger.info({}, "単体楽天垢 ポイントチェック");
             loggerMessages.blank();
             break
         case "2":
-            logger.info({}, "コンビューファイルポイントチェック");
+            logger.info({}, "Comoboファイル ポイントチェック");
             loggerMessages.blank();
             break
         case "3":
