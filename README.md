@@ -6,6 +6,8 @@ Rakutenに自動ログインし、自動的にポイントを確認するスク�
 1. comboから引けるようにする
 2. ハンドリングの追加(next page checker)
 3. モジュール分け
+4. マルチ Input
+5. Asyncer
 
 
 ### install driver
