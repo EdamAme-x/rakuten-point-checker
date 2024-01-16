@@ -1,10 +1,14 @@
 import puppeteer from "puppeteer";
 import pino from "pino";
 import { createLogger } from "./createLogger";
-import { Parser as yamlParser } from "yaml/dist/parse/parser";
+import Yaml from "yaml";
 import fs from "node:fs";
 
-const configGenerator = new yamlParser().parse(fs.readFileSync("./config.yaml").toString());
+const config: {
+    logs: {
+        outputPath: string;
+    };
+} = Yaml.parse(fs.readFileSync("config.yaml", "utf8").toString());
 
 const logger = createLogger(
   pino({
@@ -12,7 +16,7 @@ const logger = createLogger(
     transport: {
       target: "pino/file",
       options: {
-        destination: "tmp/out.log",
+        destination: config.logs.outputPath,
         mkdir: true,
       },
     },

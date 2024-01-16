@@ -1,2 +1,2 @@
-[log]
-outputPath = "logs/out.log"
+logs:
+  outputPath: "/logs/out.log"
