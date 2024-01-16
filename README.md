@@ -2,13 +2,15 @@
 
 Rakutenに自動ログインし、自動的にポイントを確認するスクリプト on Node.js
 
-## TODO 完了済み
-1. comboから引けるようにする
-2. ハンドリングの追加(next page checker)
-3. モジュール分け
-4. マルチ Input
-5. Asyncer
+- 自動
+- Combo解析モード搭載
+- 1IPでもfingerprintを偽造してくれるので規制に強い
+- 高速
 
+Created by [@amex2189](https://twitter.com/amex2189)
+機能追加要望はこちらまで
+
+PayPay.js 等の他のツールは https://github.com/EdamAme-x
 
 ### install driver
 
