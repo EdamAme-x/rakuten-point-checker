@@ -49,8 +49,6 @@ export class StandRakutenRouter {
       const resultObject: PointAndNameResult = JSON.parse(result.message);
       this.logger.info({}, `ユーザー名: ${resultObject.name}`);
       this.logger.info({}, `ポイント: ${resultObject.point}`);
-    }else {
-      this.logger.error({}, result.message);
     }
   }
 
@@ -168,8 +166,7 @@ export class StandRakutenRouter {
           name: name,
         };
       } catch (error) {
-        this.logger.error({}, "取得失敗。仕様変更の可能性が有ります。");
-        this.logger.error({}, error);
+        this.logger.error({}, "取得失敗 存在しないか弾かれました。");
       }
     }
 
