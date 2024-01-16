@@ -36,7 +36,7 @@ export class StandRakutenRouter {
     ) {
       this.logger.error(
         {},
-        `${this.enogu.red("[UserId]")} と ${this.enogu.red("[Password]")} には半角英数字のみを入力してください。`,
+        `${this.enogu.red("[UserId]")} と ${this.enogu.red("[Password]")} には半角英数字記号のみを入力してください。`,
       );
       this.loggerMessages.blank();
 
