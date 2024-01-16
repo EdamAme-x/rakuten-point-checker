@@ -1,24 +1,26 @@
 import ReadLine from "readline";
 
 export class inputManager {
-  private reader: ReadLine.Interface;
-
-  constructor(private text: string) {
-    const reader = ReadLine.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-
-    this.reader = reader;
+  text: string = "";
+  constructor(text) {
+    this.text = text;
   }
 
   getText() {
     return this.text;
   }
 
-  waitInput(): Promise<string> {
+  async waitInput(): Promise<string> {
+    const rl = ReadLine.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
     return new Promise((resolve) => {
-      this.reader.question(this.text, resolve);
+      rl.question(this.text, (input) => {
+        rl.close();
+        resolve(input.trim());
+      });
     });
   }
 }

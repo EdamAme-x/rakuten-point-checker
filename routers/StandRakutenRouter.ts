@@ -42,9 +42,20 @@ export class StandRakutenRouter {
 
       return await this.start();
     }
+
+    const result = await this.check(userId, password);
+
+    if (result.success) {
+      const resultObject: PointAndNameResult = JSON.parse(result.message);
+      this.logger.info({}, `ユーザー名: ${resultObject.name}`);
+      this.logger.info({}, `ポイント: ${resultObject.point}`);
+    }else {
+      this.logger.error({}, result.message);
+    }
   }
 
   async check(username: string, password: string): Promise<RouterResult> {
+    this.logger.info({}, "起動中・・");
     const browser = await puppeteer.launch({
       headless: "new",
     });
@@ -54,6 +65,7 @@ export class StandRakutenRouter {
       name: "",
     };
 
+    this.logger.info({}, "ページの読み込み中・・");
     const page = await browser.newPage();
 
     await page.goto(this.config.values.entryPoint);
@@ -68,6 +80,7 @@ export class StandRakutenRouter {
     const loginPromise = page.waitForNavigation();
 
     await Promise.all([loginPromise, page.click(loginButtonSelector)]);
+    this.logger.info({}, "ログイン処理中・・");
 
     const bypass = await this.bypassNextPage(browser, page);
 
