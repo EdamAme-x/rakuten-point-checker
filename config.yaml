@@ -1,4 +1,9 @@
 logs:
   outputPath: "/logs/out.log"
 
+values:
+  # wait ms
+  waitTime: 2500
+  entryPoint: "https://grp01.id.rakuten.co.jp/rms/nid/logini"
+
 # Created by @amex2189
