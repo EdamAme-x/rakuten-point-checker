@@ -2,7 +2,7 @@ import { inputManager } from "../inputManager";
 import {
   EnoguLike,
   LoggerLike,
-  PointAndNameResult,
+  PointResult,
   RouterResult,
   config,
 } from "../types";
@@ -46,11 +46,10 @@ export class StandRakutenRouter {
     const result = await this.check(userId, password);
 
     if (result.success) {
-      const resultObject: PointAndNameResult = JSON.parse(result.message);
+      const resultObject: PointResult = JSON.parse(result.message);
       this.logger.info({}, `[成功]`);
       this.logger.info({}, `ユーザーID: ${userId}`);
       this.logger.info({}, `パスワード: ${password}`);
-      this.logger.info({}, `ユーザー名: ${resultObject.name}`);
       this.logger.info({}, `ポイント: ${resultObject.point}`);
     }
   }
@@ -63,7 +62,6 @@ export class StandRakutenRouter {
 
     const result = {
       point: "0",
-      name: "",
     };
 
     this.logger.info({}, "ページの読み込み中・・");
@@ -81,12 +79,33 @@ export class StandRakutenRouter {
 
     const loginButtonSelector = "#loginInner > p:nth-child(3) > input";
 
-    await page.waitForSelector(loginButtonSelector);
+    await page.waitForSelector(loginButtonSelector, {
+      timeout: 0,
+    });
 
     const loginPromise = page.waitForNavigation();
 
-    await Promise.all([loginPromise, page.click(loginButtonSelector)]);
-    this.logger.info({}, "ログイン処理中・・");
+    try {
+      await Promise.all([loginPromise, page.click(loginButtonSelector)]);
+    } catch (_e) {
+      // debug
+      const bodySelector = "body";
+      await page.waitForSelector(bodySelector);
+
+      console.log(
+        await page.evaluate(
+          (bodySelector) => document.body.innerHTML,
+          bodySelector,
+        ),
+      );
+
+      return {
+        success: false,
+        message: JSON.stringify({
+          point: "0",
+        }),
+      };
+    }
 
     const bypass = await this.bypassNextPage(browser, page);
 
@@ -105,11 +124,10 @@ export class StandRakutenRouter {
         };
     }
 
-    const pointAndName = await this.getPointAndName(browser, page);
+    const Point = await this.getPoint(browser, page);
 
-    if (pointAndName.success) {
-      result.point = pointAndName.point;
-      result.name = pointAndName.name;
+    if (Point.success) {
+      result.point = Point.point;
     } else {
       this.logger.error({}, "取得失敗しました");
       return {
@@ -124,11 +142,22 @@ export class StandRakutenRouter {
     };
   }
 
-  async getPointAndName(
+  async getPoint(
     browser: puppeteer.Browser,
     page: puppeteer.Page,
-  ): Promise<PointAndNameResult> {
-    await wait(this.config.values.waitTime);
+  ): Promise<PointResult> {
+    const bodySelector = "body";
+
+    await page.waitForSelector(bodySelector);
+
+    console.log(
+      await page.evaluate(
+        (bodySelector) => document.body.innerHTML,
+        bodySelector,
+      ),
+    );
+
+    await wait(this.config.values.waitTime * 1.5);
 
     const currentUrl = await page.url();
 
@@ -136,15 +165,8 @@ export class StandRakutenRouter {
       try {
         const pointSelector =
           "#wrapper > div:nth-child(9) > div > ul > li:nth-child(3) > div > div:nth-child(2) > a > span > div > div > div";
-        await page.waitForSelector(pointSelector, { timeout: 3000 });
-
-        const nameSelector =
-          "#wrapper > div:nth-child(9) > div > ul > li:nth-child(2) > a > span > div > div > div > div";
-
-        await page.waitForSelector(nameSelector, { timeout: 3000 });
-
+        await page.waitForSelector(pointSelector, { timeout: 5000 });
         let point = "0";
-        let name = "名無し";
 
         const pointText = await page.evaluate((pointSelector) => {
           const points = Array.from(
@@ -154,34 +176,23 @@ export class StandRakutenRouter {
           return points.innerHTML;
         }, pointSelector);
 
-        const nameText = await page.evaluate((nameSelector) => {
-          const names = Array.from(document.querySelectorAll(nameSelector));
-
-          return names[0].innerHTML;
-        }, nameSelector);
-
         if (pointText) {
           point = pointText;
-        }
-
-        if (nameText) {
-          name = nameText;
         }
 
         return {
           success: true,
           point: point,
-          name: name,
         };
       } catch (error) {
         this.logger.error({}, "取得失敗 存在しないか弾かれました。");
+        this.logger.error({}, error);
       }
     }
 
     return {
       success: false,
       point: "0",
-      name: "取得失敗",
     };
   }
 

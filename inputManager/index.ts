@@ -19,7 +19,7 @@ export class inputManager {
     return new Promise((resolve) => {
       rl.question(this.text, (input) => {
         rl.close();
-        resolve(input.trim());
+        resolve(input.trim().replace(/\n/gm, ""));
       });
     });
   }

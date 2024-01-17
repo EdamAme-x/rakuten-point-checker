@@ -55,8 +55,9 @@ async function main(): Promise<void> {
 
       break;
     case "2":
-      logger.info({}, "Comoboファイル ポイントチェック");
-      loggerMessages.blank();
+      logger.info({}, "現在調整中");
+
+      return;
 
       const comboRakutenRouter = new ComboRakutenRouter(
         logger,
@@ -80,7 +81,7 @@ async function main(): Promise<void> {
       return await main();
   }
 
-  const yOrN = await new inputManager("続行しますか? (y/n)").waitInput();
+  const yOrN = await new inputManager("続行しますか? (y/N): ").waitInput();
 
   if (yOrN.toUpperCase() === "N") {
     process.exit(0);
