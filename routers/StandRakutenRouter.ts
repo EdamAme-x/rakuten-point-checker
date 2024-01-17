@@ -47,6 +47,9 @@ export class StandRakutenRouter {
 
     if (result.success) {
       const resultObject: PointAndNameResult = JSON.parse(result.message);
+      this.logger.info({}, `[成功]`);
+      this.logger.info({}, `ユーザーID: ${userId}`);
+      this.logger.info({}, `パスワード: ${password}`);
       this.logger.info({}, `ユーザー名: ${resultObject.name}`);
       this.logger.info({}, `ポイント: ${resultObject.point}`);
     }

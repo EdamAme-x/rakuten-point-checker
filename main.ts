@@ -69,6 +69,8 @@ async function main(): Promise<void> {
       loggerMessages.blank();
       return await main();
   }
+
+  return await main();
 }
 
 main();

@@ -27,5 +27,6 @@ export type config = {
   values: {
     waitTime: number;
     entryPoint: string;
+    interval: number;
   };
 };

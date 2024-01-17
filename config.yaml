@@ -5,5 +5,6 @@ values:
   # wait ms
   waitTime: 2500
   entryPoint: "https://grp01.id.rakuten.co.jp/rms/nid/logini"
+  interval: 3500
 
 # Created by @amex2189

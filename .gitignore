@@ -1,3 +1,4 @@
 node_modules
 tmp/*
+logs/*
 _main.ts
