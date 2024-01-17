@@ -8,6 +8,7 @@ import { loggerMessage } from "./loggerMessage";
 import { inputManager } from "./inputManager";
 import { StandRakutenRouter } from "./routers/StandRakutenRouter";
 import { config } from "./types";
+import { ComboRakutenRouter } from "./routers/ComboRakutenRouter";
 
 const config: config = Yaml.parse(
   fs.readFileSync("config.yaml", "utf8").toString(),
@@ -56,6 +57,15 @@ async function main(): Promise<void> {
     case "2":
       logger.info({}, "Comoboファイル ポイントチェック");
       loggerMessages.blank();
+
+      const comboRakutenRouter = new ComboRakutenRouter(
+        logger,
+        Enogu,
+        loggerMessages,
+        config,
+      );
+
+      await comboRakutenRouter.start();
       break;
     case "3":
       logger.info({}, "終了します");
@@ -68,6 +78,12 @@ async function main(): Promise<void> {
       );
       loggerMessages.blank();
       return await main();
+  }
+
+  const yOrN = await new inputManager("続行しますか? (y/n)").waitInput();
+
+  if (yOrN.toUpperCase() === "N") {
+    process.exit(0);
   }
 
   return await main();
