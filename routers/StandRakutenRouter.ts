@@ -244,8 +244,8 @@ export class StandRakutenRouter {
               value: myStatus
             },
             {
-              name: "Rakuten Mobile 会員",
-              value: isRakutenMobile ? "会員" : "未会員"
+              name: "Rakuten Mobile",
+              value: isRakutenMobile ? "Mobile会員" : "Mobile未会員"
             }
           ],
         };
