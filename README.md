@@ -21,3 +21,5 @@ PayPay.js 等の他のツールは https://github.com/EdamAme-x
 `(p)npm run start`
 
 無断使用禁止
+
+UserId はメルアド含む

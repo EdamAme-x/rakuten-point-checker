@@ -51,7 +51,7 @@ export class ComboRakutenRouter {
     }
 
     if (/^\S+$/.test(comboFilePath) && fs.existsSync(comboFilePath)) {
-      const content = fs.readFileSync(comboFilePath, "utf8").split("\n");
+      const content = fs.readFileSync(comboFilePath, {encoding: 'utf-8'}).split("\n");
       const comboResult: {
         username: string;
         password: string;
@@ -64,8 +64,10 @@ export class ComboRakutenRouter {
         );
       }
 
+      this.logger.info({}, `${content.length}件のComboを解析中・・・`);
+
       for (let i = 0, len = content.length; i < len; i++) {
-        const splitLine = content[i].replace("://", "_split_web_").split(":");
+        const splitLine = content[i].replace("://", "_split_web_").trim().replace(/\s/g, ":").split(":");
         const url = splitLine[0];
         if (!url.includes("rakuten") || splitLine.length < 3) {
           this.logger.warn({}, "形式が違うComboがスキップされました。");
@@ -81,6 +83,7 @@ export class ComboRakutenRouter {
           password,
         });
       }
+
       for (let i = 0, len = comboResult.length; i < len; i++) {
         this.logger.info(
           {},
