@@ -232,7 +232,7 @@ export class StandRakutenRouter {
         }, myStatusSelector);
 
         if (myStatusText) {
-          myStatus = myStatusText
+          myStatus = myStatusText.trim()
         }
 
         return {
