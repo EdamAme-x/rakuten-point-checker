@@ -26,15 +26,36 @@ export class ComboRakutenRouter {
     this.logger.info({}, "Crtl + C で終了");
     this.loggerMessages.blank();
 
-    const comboFilePath = (
-      await new inputManager(
-        "Comboファイルのパスを入力してください: ",
-      ).waitInput()
-    ).trim();
+    this.loggerMessages.showComboOptions();
+    this.loggerMessages.blank();
 
-    const resultFilePath = (
-      await new inputManager("結果の出力パスを入力してください: ").waitInput()
-    ).trim();
+    const option = (await new inputManager("Option: ").waitInput()).trim();
+
+    if (option !== "1" && option !== "2") {
+      return;
+    }
+
+    let comboFilePath = "";
+    let resultFilePath = "";
+
+    if (option === "1") {
+      comboFilePath = (
+        await new inputManager(
+          "Comboファイルのパスを入力してください: ",
+        ).waitInput()
+      ).trim(); 
+
+      resultFilePath = (
+        await new inputManager("結果の出力パスを入力してください: ").waitInput()
+      )
+    } else {
+      comboFilePath = (
+        await new inputManager("Comboファイルのパスを入力してください: ").waitInput()
+      ).trim();
+
+      resultFilePath = (comboFilePath.split("/").pop() || "").split(".")[0] + `_result_${Date.now()}.txt`;
+    }
+
     this.loggerMessages.blank();
 
     if (/^\S+$/.test(resultFilePath)) {

@@ -62,6 +62,15 @@ export class StandRakutenRouter {
     this.logger.info({}, "起動中・・");
     const browser = await puppeteer.launch({
       headless: "new",
+      args: [
+        '--disable-gpu',
+        '--disable-dev-shm-usage',
+        '--disable-setuid-sandbox',
+        '--no-first-run',
+        '--no-sandbox',
+        '--no-zygote',
+        '--single-process'
+      ]
     });
 
     const result: {

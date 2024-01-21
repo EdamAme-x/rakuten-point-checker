@@ -23,4 +23,14 @@ export class loggerMessage {
     );
     console.log(`${this.enogu.green(" 3 ")} ${this.enogu.white("Exit")}`);
   }
+
+  showComboOptions() {
+    console.log(`${this.enogu.green("[\\]")} ${this.enogu.white("Combo Options")}`);
+    console.log(
+      `${this.enogu.green(" 1 ")} ${this.enogu.white("Enter File yourself")}`,
+    );
+    console.log(
+      `${this.enogu.green(" 2 ")} ${this.enogu.white("Auto Generate Result File")}`,
+    );
+  }
 }

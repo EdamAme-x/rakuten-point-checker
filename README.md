@@ -23,3 +23,5 @@ PayPay.js 等の他のツールは https://github.com/EdamAme-x
 無断使用禁止
 
 UserId はメルアド含む
+
+tmp ファイルの中にcomboファイルを置くのがおススメです。
