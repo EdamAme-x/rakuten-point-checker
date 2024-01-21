@@ -68,6 +68,8 @@ export class ComboRakutenRouter {
 
     this.loggerMessages.blank();
 
+    let alreadyChecked: string[] = [];
+
     if (/^\S+$/.test(resultFilePath)) {
       if (!fs.existsSync(resultFilePath)) {
         fs.writeFileSync(resultFilePath, "");
@@ -75,6 +77,11 @@ export class ComboRakutenRouter {
           {},
           `ファイルが存在しなかった為、${resultFilePath} が新規作成されました。`,
         );
+      }else {
+        alreadyChecked = fs
+          .readFileSync(resultFilePath, { encoding: "utf-8" })
+          .split("\n").map((data) => data.trim().split(":")[0]);
+        this.logger.info({}, `${resultFilePath} に既にチェック済みのComboがあるため復元しました。`);
       }
     } else {
       this.logger.error({}, "正しいファイルパスを入力してください");
@@ -120,8 +127,6 @@ export class ComboRakutenRouter {
           password,
         });
       }
-
-      let alreadyChecked: string[] = [];
 
       for (let i = 0, len = comboResult.length; i < len; i++) {
         if (alreadyChecked.includes(comboResult[i].username)) {

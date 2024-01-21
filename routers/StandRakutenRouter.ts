@@ -121,6 +121,7 @@ export class StandRakutenRouter {
     try {
       await Promise.all([loginPromise, page.click(loginButtonSelector)]);
     } catch (_e) {
+      await browser.close();
       return {
         success: false,
         message: JSON.stringify({
@@ -141,6 +142,7 @@ export class StandRakutenRouter {
         break;
       case "failBypass":
         this.logger.error({}, "認証に失敗しました。");
+        await browser.close();
         return {
           success: false,
           message: "認証に失敗しました。",
@@ -153,6 +155,7 @@ export class StandRakutenRouter {
       result.point = Point.point;
     } else {
       this.logger.error({}, "取得失敗しました");
+      await browser.close();
       return {
         success: false,
         message: JSON.stringify(result),
@@ -167,6 +170,7 @@ export class StandRakutenRouter {
       });
     }
 
+    await browser.close();
     return {
       success: true,
       message: JSON.stringify(result),
@@ -276,8 +280,26 @@ export class StandRakutenRouter {
             },
           ],
         };
-      } catch (error) {
-        this.logger.error({}, "取得失敗 存在しないか弾かれました。");
+      } catch (error) { 
+        const bodySelector = "body";
+
+        await page.waitForSelector(bodySelector);
+
+        const body = await page.evaluate(
+          (bodySelector) => document.body.innerHTML,
+          bodySelector,
+        )
+
+        if (body.includes("認証コード")) {
+          this.logger.error({}, "IP 規制");
+          return {
+            success: false,
+            point: "0",
+            some: [],
+          };
+        }
+
+        this.logger.error({}, "取得失敗 存在しません。");
         this.logger.error({}, error);
       }
     }
