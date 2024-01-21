@@ -139,6 +139,8 @@ export class ComboRakutenRouter {
             "",
           )
         )
+
+        await wait(this.config.values.waitTime / 3);
       }
 
     } else {
