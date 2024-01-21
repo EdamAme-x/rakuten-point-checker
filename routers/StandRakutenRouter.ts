@@ -174,7 +174,7 @@ export class StandRakutenRouter {
       };
     }
 
-    await wait(this.config.values.waitTime * (Math.random() + 0.5));
+    await wait(this.config.values.waitTime * (Math.random() + 0.75));
 
     const currentUrl = await page.url();
 
