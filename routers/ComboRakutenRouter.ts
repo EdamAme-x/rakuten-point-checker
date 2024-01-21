@@ -123,8 +123,14 @@ export class ComboRakutenRouter {
           this.config,
         ).check(comboResult[i].username, comboResult[i].password);
 
-        if (!JSON.parse(result.message).success) {
-          return;
+        try {
+          JSON.parse(result.message);
+
+          if (!result.success) {
+            continue;
+          }
+        }catch (_e) {
+          continue;
         }
 
         this.logger.info(
