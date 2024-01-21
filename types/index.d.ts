@@ -17,6 +17,10 @@ export type RouterResult = {
 export type PointResult = {
   success: boolean;
   point: string;
+  some: {
+    name: string;
+    value: string;
+  }[];
 };
 
 export type config = {

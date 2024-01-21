@@ -51,6 +51,10 @@ export class StandRakutenRouter {
       this.logger.info({}, `ユーザーID: ${userId}`);
       this.logger.info({}, `パスワード: ${password}`);
       this.logger.info({}, `ポイント: ${resultObject.point}`);
+      for (let i = 0, len = resultObject.some.length; i < len; i++) {
+        const some = resultObject.some[i];
+        this.logger.info({}, `${some.name}: ${some.value}`);
+      }
     }
   }
 
@@ -60,8 +64,15 @@ export class StandRakutenRouter {
       headless: "new",
     });
 
-    const result = {
+    const result: {
+      point: string;
+      some: {
+        name: string;
+        value: string;
+      }[];
+    } = {
       point: "0",
+      some: [],
     };
 
     this.logger.info({}, "ページの読み込み中・・");
@@ -88,21 +99,12 @@ export class StandRakutenRouter {
     try {
       await Promise.all([loginPromise, page.click(loginButtonSelector)]);
     } catch (_e) {
-      // debug
-      const bodySelector = "body";
-      await page.waitForSelector(bodySelector);
-
-      console.log(
-        await page.evaluate(
-          (bodySelector) => document.body.innerHTML,
-          bodySelector,
-        ),
-      );
 
       return {
         success: false,
         message: JSON.stringify({
           point: "0",
+          some: [],
         }),
       };
     }
@@ -136,6 +138,14 @@ export class StandRakutenRouter {
       };
     }
 
+    for (let i = 0, len = Point.some.length; i < len; i++) {
+      const some = Point.some[i];
+      result.some.push({
+        name: some.name,
+        value: some.value,
+      });
+    }
+
     return {
       success: true,
       message: JSON.stringify(result),
@@ -150,12 +160,19 @@ export class StandRakutenRouter {
 
     await page.waitForSelector(bodySelector);
 
-    console.log(
-      await page.evaluate(
-        (bodySelector) => document.body.innerHTML,
-        bodySelector,
-      ),
-    );
+    const body = await page.evaluate(
+      (bodySelector) => document.body.innerHTML,
+      bodySelector,
+    )
+
+    if (body.includes("認証コードをご入力ください ")) {
+      this.logger.error({}, "SMS認証を要求されました。");
+      return {
+        success: false,
+        point: "0",
+        some: [],
+      };
+    }
 
     await wait(this.config.values.waitTime * (Math.random() + 0.5));
 
@@ -180,9 +197,57 @@ export class StandRakutenRouter {
           point = pointText;
         }
 
+        let isRakutenMobile = false;
+
+        const mobileSelector = "#wrapper > div:nth-child(19) > div > div > div > div > div > div > div > div > div.swiper-slide.swiper-slide-next > div > div > img";
+
+        await page.waitForSelector(mobileSelector, { timeout: 5000 });
+
+        const isRakutenMobileBool = await page.evaluate((mobileSelector) => {
+          const isRakutenMobile = Array.from(
+            document.querySelectorAll(mobileSelector),
+          )[0];
+
+          return isRakutenMobile.getAttribute("src") === "https://r.r10s.jp/com/inc/home/20080930/ris/img/spu_icon/status_change.svg" ? false : true;
+        }, mobileSelector);
+
+        if (isRakutenMobileBool) {
+          isRakutenMobile = isRakutenMobileBool
+        }
+
+        await page.goto("https://my.rakuten.co.jp/?l-id=top_normal_myrakuten_account");
+
+        let myStatus = "";
+
+        const myStatusSelector = "#mystatus_rankName"
+
+        await page.waitForSelector(myStatusSelector, { timeout: 5000 });
+
+        const myStatusText = await page.evaluate((myStatusSelector) => {
+          const myStatus = Array.from(
+            document.querySelectorAll(myStatusSelector),
+          )[0];
+
+          return myStatus.innerHTML;
+        }, myStatusSelector);
+
+        if (myStatusText) {
+          myStatus = myStatusText
+        }
+
         return {
           success: true,
           point: point,
+          some: [
+            {
+              name: "会員レベル",
+              value: myStatus
+            },
+            {
+              name: "Rakuten Mobile 会員",
+              value: isRakutenMobile ? "会員" : "未会員"
+            }
+          ],
         };
       } catch (error) {
         this.logger.error({}, "取得失敗 存在しないか弾かれました。");
@@ -193,6 +258,7 @@ export class StandRakutenRouter {
     return {
       success: false,
       point: "0",
+      some: [],
     };
   }
 
