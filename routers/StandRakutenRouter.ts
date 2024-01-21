@@ -11,6 +11,24 @@ import { loggerMessage } from "./../loggerMessage/index";
 import * as puppeteer from "puppeteer";
 import { wait } from "./../utils/wait";
 
+const unnecessaryRequests = [
+  "https://rat.rakuten.co.jp/",
+  "https://gateway-api-r2p2.recommend.rakuten.co.jp/r2p2/ichiba/v2/recommend/top_item_pc",
+  "https://s-dlv.rmp.rakuten.co.jp/cd",
+];
+
+const unnecessaryExtensions = [
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".svg",
+  ".webp",
+  ".ico",
+  ".bmp",
+  ".css",  
+]
+
 export class StandRakutenRouter {
   constructor(
     private logger: LoggerLike,
@@ -91,6 +109,8 @@ export class StandRakutenRouter {
         Math.floor(Math.random() * 200) +
         ".0.4692.99 Safari/537.36",
     );
+    page.setRequestInterception(true);
+    this.setUnnecessary(page);
 
     await page.goto(this.config.values.entryPoint);
 
@@ -307,5 +327,34 @@ export class StandRakutenRouter {
 
     this.logger.info({}, "認証に成功しました。");
     return "bypass";
+  }
+
+  private setUnnecessary(page: puppeteer.Page) {
+    page.on('request', request => {
+      // if (scrapingUrl === request.url()) {
+      //   request.continue().catch(err => console.error(err))
+      // } else {
+      //   request.abort().catch(err => console.error(err))
+      // }
+
+      const url = new URL(request.url());
+      const serializedUrl = url.origin + url.pathname;
+
+      for (let i = 0, len = unnecessaryRequests.length; i < len; i++) {
+        if (serializedUrl === unnecessaryRequests[i]) {
+          request.abort().catch()
+          return
+        }
+      }
+
+      for (let i = 0, len = unnecessaryExtensions.length; i < len; i++) {
+        if (serializedUrl === unnecessaryExtensions[i]) {
+          request.abort().catch()
+          return
+        }
+      }
+
+      request.continue().catch()
+    })
   }
 }

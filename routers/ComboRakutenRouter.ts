@@ -53,7 +53,10 @@ export class ComboRakutenRouter {
         await new inputManager("Comboファイルのパスを入力してください: ").waitInput()
       ).trim();
 
-      resultFilePath = (comboFilePath.split("/").pop() || "").split(".")[0] + `_result_${Date.now()}.txt`;
+      const fileName = comboFilePath.substring(comboFilePath.lastIndexOf("/") + 1);
+      const filePathWithoutFileName = comboFilePath.substring(0, comboFilePath.lastIndexOf("/"));
+
+      resultFilePath = `${filePathWithoutFileName}/${fileName}_result_${Date.now()}.txt`;
     }
 
     this.loggerMessages.blank();
@@ -105,40 +108,18 @@ export class ComboRakutenRouter {
         });
       }
 
+      let alreadyChecked: string[] = [];
+
       for (let i = 0, len = comboResult.length; i < len; i++) {
+        if (alreadyChecked.includes(comboResult[i].username)) {
+          this.logger.info({}, `(${i + 1}/${len}) ${comboResult[i].username} は既に解析済みの為スキップされました。`);
+          continue;
+        }
+
         this.logger.info(
           {},
           `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} の解析中・・・`,
         );
-        // new StandRakutenRouter(
-        //   this.logger,
-        //   this.enogu,
-        //   this.loggerMessages,
-        //   this.config,
-        // )
-        //   .check(comboResult[i].username, comboResult[i].password)
-        //   .then((result) => {
-        //     if (!JSON.parse(result.message).success) {
-        //       return;
-        //     }
-
-        //     this.logger.info(
-        //       {},
-        //       `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} の解析完了`,
-        //     );
-        //     this.logger.info(
-        //       {},
-        //       `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} ポイント: ${JSON.parse(result.message).point}`,
-        //     );
-
-        //     fs.appendFileSync(
-        //       resultFilePath,
-        //       `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}`.replace(
-        //         /\n/gm,
-        //         "",
-        //       ) + "\n",
-        //     );
-          // });
 
         const result = await new StandRakutenRouter(
           this.logger,
@@ -146,6 +127,8 @@ export class ComboRakutenRouter {
           this.loggerMessages,
           this.config,
         ).check(comboResult[i].username, comboResult[i].password);
+
+        alreadyChecked.push(comboResult[i].username);
 
         try {
           JSON.parse(result.message);
@@ -167,7 +150,7 @@ export class ComboRakutenRouter {
           `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}:${JSON.parse(result.message).some.map((some) => `${some.value}`).join(":")}`.replace(
             /\n/gm,
             "",
-          )
+          ) + "\n",
         )
 
         await wait(this.config.values.waitTime / 3);
