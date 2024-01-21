@@ -25,7 +25,9 @@ export class loggerMessage {
   }
 
   showComboOptions() {
-    console.log(`${this.enogu.green("[\\]")} ${this.enogu.white("Combo Options")}`);
+    console.log(
+      `${this.enogu.green("[\\]")} ${this.enogu.white("Combo Options")}`,
+    );
     console.log(
       `${this.enogu.green(" 1 ")} ${this.enogu.white("Enter File yourself")}`,
     );

@@ -43,18 +43,25 @@ export class ComboRakutenRouter {
         await new inputManager(
           "Comboファイルのパスを入力してください: ",
         ).waitInput()
-      ).trim(); 
-
-      resultFilePath = (
-        await new inputManager("結果の出力パスを入力してください: ").waitInput()
-      )
-    } else {
-      comboFilePath = (
-        await new inputManager("Comboファイルのパスを入力してください: ").waitInput()
       ).trim();
 
-      const fileName = comboFilePath.substring(comboFilePath.lastIndexOf("/") + 1);
-      const filePathWithoutFileName = comboFilePath.substring(0, comboFilePath.lastIndexOf("/"));
+      resultFilePath = await new inputManager(
+        "結果の出力パスを入力してください: ",
+      ).waitInput();
+    } else {
+      comboFilePath = (
+        await new inputManager(
+          "Comboファイルのパスを入力してください: ",
+        ).waitInput()
+      ).trim();
+
+      const fileName = comboFilePath.substring(
+        comboFilePath.lastIndexOf("/") + 1,
+      );
+      const filePathWithoutFileName = comboFilePath.substring(
+        0,
+        comboFilePath.lastIndexOf("/"),
+      );
 
       resultFilePath = `${filePathWithoutFileName}/${fileName}_result_${Date.now()}.txt`;
     }
@@ -75,7 +82,9 @@ export class ComboRakutenRouter {
     }
 
     if (/^\S+$/.test(comboFilePath) && fs.existsSync(comboFilePath)) {
-      const content = fs.readFileSync(comboFilePath, {encoding: 'utf-8'}).split("\n");
+      const content = fs
+        .readFileSync(comboFilePath, { encoding: "utf-8" })
+        .split("\n");
       const comboResult: {
         username: string;
         password: string;
@@ -91,7 +100,11 @@ export class ComboRakutenRouter {
       this.logger.info({}, `${content.length}件のComboを解析中・・・`);
 
       for (let i = 0, len = content.length; i < len; i++) {
-        const splitLine = content[i].replace("://", "_split_web_").trim().replace(/\s/g, ":").split(":");
+        const splitLine = content[i]
+          .replace("://", "_split_web_")
+          .trim()
+          .replace(/\s/g, ":")
+          .split(":");
         const url = splitLine[0];
         if (!url.includes("rakuten") || splitLine.length < 3) {
           this.logger.warn({}, "形式が違うComboがスキップされました。");
@@ -112,7 +125,10 @@ export class ComboRakutenRouter {
 
       for (let i = 0, len = comboResult.length; i < len; i++) {
         if (alreadyChecked.includes(comboResult[i].username)) {
-          this.logger.info({}, `(${i + 1}/${len}) ${comboResult[i].username} は既に解析済みの為スキップされました。`);
+          this.logger.info(
+            {},
+            `(${i + 1}/${len}) ${comboResult[i].username} は既に解析済みの為スキップされました。`,
+          );
           continue;
         }
 
@@ -136,26 +152,26 @@ export class ComboRakutenRouter {
           if (!result.success) {
             continue;
           }
-        }catch (_e) {
+        } catch (_e) {
           continue;
         }
 
         this.logger.info(
           {},
           `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} の解析完了`,
-        )
+        );
 
         fs.appendFileSync(
           resultFilePath,
-          `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}:${JSON.parse(result.message).some.map((some) => `${some.value}`).join(":")}`.replace(
-            /\n/gm,
-            "",
-          ) + "\n",
-        )
+          `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}:${JSON.parse(
+            result.message,
+          )
+            .some.map((some) => `${some.value}`)
+            .join(":")}`.replace(/\n/gm, "") + "\n",
+        );
 
         await wait(this.config.values.waitTime / 3);
       }
-
     } else {
       this.logger.error({}, "正しいファイルパスを入力してください");
       return;

@@ -15,20 +15,12 @@ const unnecessaryRequests = [
   "https://rat.rakuten.co.jp/",
   "https://gateway-api-r2p2.recommend.rakuten.co.jp/r2p2/ichiba/v2/recommend/top_item_pc",
   "https://s-dlv.rmp.rakuten.co.jp/cd",
-  "https://gateway-api-r2p2.recommend.rakuten.co.jp/r2p2/ichiba/v2/recommend/top_buyagain_pc"
+  "https://gateway-api-r2p2.recommend.rakuten.co.jp/r2p2/ichiba/v2/recommend/top_buyagain_pc",
 ];
 
-const unnecessaryExtensions = [
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".gif",
-  ".svg",
-  ".webp",
-  ".ico",
-  ".bmp",
-  ".css",  
-]
+const unnecessaryExtensions = ["png", "jpg", "jpeg", "gif", "ico", "css"];
+
+const passWords = ["no-image.png"];
 
 export class StandRakutenRouter {
   constructor(
@@ -82,14 +74,14 @@ export class StandRakutenRouter {
     const browser = await puppeteer.launch({
       headless: "new",
       args: [
-        '--disable-gpu',
-        '--disable-dev-shm-usage',
-        '--disable-setuid-sandbox',
-        '--no-first-run',
-        '--no-sandbox',
-        '--no-zygote',
-        '--single-process'
-      ]
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--disable-setuid-sandbox",
+        "--no-first-run",
+        "--no-sandbox",
+        "--no-zygote",
+        "--single-process",
+      ],
     });
 
     const result: {
@@ -129,7 +121,6 @@ export class StandRakutenRouter {
     try {
       await Promise.all([loginPromise, page.click(loginButtonSelector)]);
     } catch (_e) {
-
       return {
         success: false,
         message: JSON.stringify({
@@ -193,7 +184,7 @@ export class StandRakutenRouter {
     const body = await page.evaluate(
       (bodySelector) => document.body.innerHTML,
       bodySelector,
-    )
+    );
 
     if (body.includes("認証コードをご入力ください ")) {
       this.logger.error({}, "SMS認証を要求されました。");
@@ -229,7 +220,8 @@ export class StandRakutenRouter {
 
         let isRakutenMobile = false;
 
-        const mobileSelector = "#wrapper > div:nth-child(19) > div > div > div > div > div > div > div > div > div.swiper-slide.swiper-slide-next > div > div > img";
+        const mobileSelector =
+          "#wrapper > div:nth-child(19) > div > div > div > div > div > div > div > div > div.swiper-slide.swiper-slide-next > div > div > img";
 
         await page.waitForSelector(mobileSelector, { timeout: 5000 });
 
@@ -238,18 +230,23 @@ export class StandRakutenRouter {
             document.querySelectorAll(mobileSelector),
           )[0];
 
-          return isRakutenMobile.getAttribute("src") === "https://r.r10s.jp/com/inc/home/20080930/ris/img/spu_icon/status_change.svg" ? false : true;
+          return isRakutenMobile.getAttribute("src") ===
+            "https://r.r10s.jp/com/inc/home/20080930/ris/img/spu_icon/status_change.svg"
+            ? false
+            : true;
         }, mobileSelector);
 
         if (isRakutenMobileBool) {
-          isRakutenMobile = isRakutenMobileBool
+          isRakutenMobile = isRakutenMobileBool;
         }
 
-        await page.goto("https://my.rakuten.co.jp/?l-id=top_normal_myrakuten_account");
+        await page.goto(
+          "https://my.rakuten.co.jp/?l-id=top_normal_myrakuten_account",
+        );
 
         let myStatus = "";
 
-        const myStatusSelector = "#mystatus_rankName"
+        const myStatusSelector = "#mystatus_rankName";
 
         await page.waitForSelector(myStatusSelector, { timeout: 5000 });
 
@@ -262,7 +259,7 @@ export class StandRakutenRouter {
         }, myStatusSelector);
 
         if (myStatusText) {
-          myStatus = myStatusText.trim()
+          myStatus = myStatusText.trim();
         }
 
         return {
@@ -271,12 +268,12 @@ export class StandRakutenRouter {
           some: [
             {
               name: "会員レベル",
-              value: myStatus
+              value: myStatus,
             },
             {
               name: "Rakuten Mobile",
-              value: isRakutenMobile ? "Mobile会員" : "Mobile未会員"
-            }
+              value: isRakutenMobile ? "Mobile会員" : "Mobile未会員",
+            },
           ],
         };
       } catch (error) {
@@ -331,7 +328,7 @@ export class StandRakutenRouter {
   }
 
   private setUnnecessary(page: puppeteer.Page) {
-    page.on('request', request => {
+    page.on("request", (request) => {
       // if (scrapingUrl === request.url()) {
       //   request.continue().catch(err => console.error(err))
       // } else {
@@ -341,21 +338,28 @@ export class StandRakutenRouter {
       const url = new URL(request.url());
       const serializedUrl = url.origin + url.pathname;
 
+      for (let i = 0, len = passWords.length; i < len; i++) {
+        if (serializedUrl.includes(passWords[i])) {
+          request.continue().catch();
+          return;
+        }
+      }
+
       for (let i = 0, len = unnecessaryRequests.length; i < len; i++) {
         if (serializedUrl === unnecessaryRequests[i]) {
-          request.abort().catch()
-          return
+          request.abort().catch();
+          return;
         }
       }
 
       for (let i = 0, len = unnecessaryExtensions.length; i < len; i++) {
-        if (serializedUrl === unnecessaryExtensions[i]) {
-          request.abort().catch()
-          return
+        if (serializedUrl.split(".").pop() === unnecessaryExtensions[i]) {
+          request.abort().catch();
+          return;
         }
       }
 
-      request.continue().catch()
-    })
+      request.continue().catch();
+    });
   }
 }
