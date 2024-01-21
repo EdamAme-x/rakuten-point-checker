@@ -134,7 +134,7 @@ export class ComboRakutenRouter {
 
         fs.appendFileSync(
           resultFilePath,
-          `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}`.replace(
+          `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}:${JSON.parse(result.message).some.map((some) => `${some.value}`).join(":")}`.replace(
             /\n/gm,
             "",
           )
