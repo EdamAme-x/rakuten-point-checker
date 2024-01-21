@@ -55,10 +55,6 @@ async function main(): Promise<void> {
 
       break;
     case "2":
-      logger.info({}, "現在調整中");
-
-      return;
-
       const comboRakutenRouter = new ComboRakutenRouter(
         logger,
         Enogu,
