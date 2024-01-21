@@ -15,6 +15,7 @@ const unnecessaryRequests = [
   "https://rat.rakuten.co.jp/",
   "https://gateway-api-r2p2.recommend.rakuten.co.jp/r2p2/ichiba/v2/recommend/top_item_pc",
   "https://s-dlv.rmp.rakuten.co.jp/cd",
+  "https://gateway-api-r2p2.recommend.rakuten.co.jp/r2p2/ichiba/v2/recommend/top_buyagain_pc"
 ];
 
 const unnecessaryExtensions = [
