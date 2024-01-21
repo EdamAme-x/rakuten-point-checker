@@ -33,6 +33,7 @@ loggerMessages.welcome();
 loggerMessages.blank();
 
 logger.info({}, "起動中...");
+logger.info({}, "Created by @amex2189");
 loggerMessages.blank();
 
 async function main(): Promise<void> {
