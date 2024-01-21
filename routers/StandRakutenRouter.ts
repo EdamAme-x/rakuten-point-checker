@@ -30,7 +30,7 @@ export class StandRakutenRouter {
     private config: config,
   ) {}
 
-  async start() {
+  async start(withProxy: boolean, proxyContent: string[]) {
     this.logger.info({}, "単体楽天垢 ポイントチェック");
     this.logger.info({}, "Crtl + C で終了");
     this.loggerMessages.blank();
@@ -51,10 +51,10 @@ export class StandRakutenRouter {
       );
       this.loggerMessages.blank();
 
-      return await this.start();
+      return await this.start(withProxy, proxyContent);
     }
 
-    const result = await this.check(userId, password);
+    const result = await this.check(userId, password, withProxy, proxyContent);
 
     if (result.success) {
       const resultObject: PointResult = JSON.parse(result.message);
@@ -69,18 +69,27 @@ export class StandRakutenRouter {
     }
   }
 
-  async check(username: string, password: string): Promise<RouterResult> {
+  async check(username: string, password: string, withProxy: boolean, proxyContent: string[]): Promise<RouterResult> {
     this.logger.info({}, "起動中・・");
+
+    const args = [
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+      "--disable-setuid-sandbox",
+      "--no-first-run",
+      "--no-sandbox",
+      "--no-zygote",
+      "--single-process",
+    ]
+
+    if (withProxy) {
+      args.push(`--proxy-server=${proxyContent[Math.floor(Math.random() * proxyContent.length)]}`)
+    }
+
     const browser = await puppeteer.launch({
       headless: "new",
       args: [
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--disable-setuid-sandbox",
-        "--no-first-run",
-        "--no-sandbox",
-        "--no-zygote",
-        "--single-process",
+        ...args
       ],
     });
 

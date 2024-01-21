@@ -21,7 +21,7 @@ export class ComboRakutenRouter {
     private config: config,
   ) {}
 
-  async start() {
+  async start(withProxy: boolean, proxyContent: string[]) {
     this.logger.info({}, "Combo楽天垢 ポイントチェック");
     this.logger.info({}, "Crtl + C で終了");
     this.loggerMessages.blank();
@@ -147,7 +147,7 @@ export class ComboRakutenRouter {
           this.enogu,
           this.loggerMessages,
           this.config,
-        ).check(comboResult[i].username, comboResult[i].password);
+        ).check(comboResult[i].username, comboResult[i].password, withProxy, proxyContent);
 
         alreadyChecked.push(comboResult[i].username);
 

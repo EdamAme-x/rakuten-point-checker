@@ -25,3 +25,19 @@ PayPay.js 等の他のツールは https://github.com/EdamAme-x
 UserId はメルアド含む
 
 tmp ファイルの中にcomboファイルを置くのがおススメです。
+
+串を使う場合は、テキストファイル(名前は何でも良し)を作成して下さい。
+形式はURLです。
+
+```yaml
+http://username:password@proxy.or.ip:1111
+
+or
+
+http://proxy.or.ip:1111
+
+or
+
+socks5://proxy.or.ip:1111
+...
+```

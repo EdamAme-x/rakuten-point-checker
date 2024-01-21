@@ -42,6 +42,45 @@ async function main(): Promise<void> {
   const optionSelect = await new inputManager("Option: ").waitInput();
   loggerMessages.blank();
 
+  const withProxy = (await new inputManager(
+    "Do you want to use the Proxy? (y/N): ",
+  ).waitInput()).toUpperCase() === "Y";
+  loggerMessages.blank();
+
+  const proxyContent: string[] = [];
+
+  if (withProxy) {
+    logger.info({}, "Proxyを使用します");
+    loggerMessages.blank();
+
+    const proxyPlace = (await new inputManager(
+      "ProxyFileのパスを入力してください: ",
+    ).waitInput()).trim();
+
+    if (!fs.existsSync(proxyPlace)) {
+      logger.error({}, "ProxyFileのパスが正しくありません");
+      loggerMessages.blank();
+      return await main();
+    }else {
+      const content = fs.readFileSync(proxyPlace, "utf8").toString().split("\n");
+
+      for (let i = 0, len = content.length; i < len; i++) {
+        try {
+          new URL(content[i]);
+          proxyContent.push(content[i]);
+        }catch (_e) {
+          logger.warn({}, "形式の違うProxyをスキップしました。");
+        }
+      }
+    }
+  }
+
+  if (proxyContent.length < 1) {
+    logger.error({}, "ProxyFileが空です。");
+    loggerMessages.blank();
+    return await main();
+  }
+
   switch (optionSelect.trim().substring(0, 1)) {
     case "1":
       const standRakutenRouter = new StandRakutenRouter(
@@ -51,7 +90,7 @@ async function main(): Promise<void> {
         config,
       );
 
-      await standRakutenRouter.start();
+      await standRakutenRouter.start(withProxy, proxyContent);
 
       break;
     case "2":
@@ -62,7 +101,7 @@ async function main(): Promise<void> {
         config,
       );
 
-      await comboRakutenRouter.start();
+      await comboRakutenRouter.start(withProxy, proxyContent);
       break;
     case "3":
       logger.info({}, "終了します");
