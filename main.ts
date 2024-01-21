@@ -42,9 +42,12 @@ async function main(): Promise<void> {
   const optionSelect = await new inputManager("Option: ").waitInput();
   loggerMessages.blank();
 
-  const withProxy = (await new inputManager(
-    "Do you want to use the Proxy? (y/N): ",
-  ).waitInput()).toUpperCase() === "Y";
+  const withProxy =
+    (
+      await new inputManager(
+        "Do you want to use the Proxy? (y/N): ",
+      ).waitInput()
+    ).toUpperCase() === "Y";
   loggerMessages.blank();
 
   const proxyContent: string[] = [];
@@ -53,29 +56,34 @@ async function main(): Promise<void> {
     logger.info({}, "Proxyを使用します");
     loggerMessages.blank();
 
-    const proxyPlace = (await new inputManager(
-      "ProxyFileのパスを入力してください: ",
-    ).waitInput()).trim();
+    const proxyPlace = (
+      await new inputManager(
+        "ProxyFileのパスを入力してください: ",
+      ).waitInput()
+    ).trim();
 
     if (!fs.existsSync(proxyPlace)) {
       logger.error({}, "ProxyFileのパスが正しくありません");
       loggerMessages.blank();
       return await main();
-    }else {
-      const content = fs.readFileSync(proxyPlace, "utf8").toString().split("\n");
+    } else {
+      const content = fs
+        .readFileSync(proxyPlace, "utf8")
+        .toString()
+        .split("\n");
 
       for (let i = 0, len = content.length; i < len; i++) {
         try {
           new URL(content[i]);
           proxyContent.push(content[i]);
-        }catch (_e) {
+        } catch (_e) {
           logger.warn({}, "形式の違うProxyをスキップしました。");
         }
       }
     }
   }
 
-  if (proxyContent.length < 1) {
+  if (proxyContent.length < 1 && withProxy) {
     logger.error({}, "ProxyFileが空です。");
     loggerMessages.blank();
     return await main();

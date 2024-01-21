@@ -1,14 +1,6 @@
 import { inputManager } from "../inputManager";
-import {
-  EnoguLike,
-  LoggerLike,
-  PointResult,
-  RouterResult,
-  config,
-} from "../types";
-import { AlphabetAndNumberValidator } from "./../validator/index";
+import { EnoguLike, LoggerLike, config } from "../types";
 import { loggerMessage } from "./../loggerMessage/index";
-import * as puppeteer from "puppeteer";
 import { wait } from "./../utils/wait";
 import fs from "node:fs";
 import { StandRakutenRouter } from "./StandRakutenRouter";
@@ -66,9 +58,28 @@ export class ComboRakutenRouter {
       resultFilePath = `${filePathWithoutFileName}/${fileName}_result_${Date.now()}.txt`;
     }
 
+    const cacheFilePath = resultFilePath + ".cache";
+
     this.loggerMessages.blank();
 
     let alreadyChecked: string[] = [];
+
+    if (fs.existsSync(cacheFilePath)) {
+      alreadyChecked.push(...fs
+        .readFileSync(cacheFilePath, { encoding: "utf-8" })
+        .split("\n")
+        .map((data) => data.trim()));
+      this.logger.info(
+        {},
+        `${cacheFilePath} に既にチェック済みのComboがあるため復元しました。`,
+      );
+    } else {
+      this.logger.info(
+        {},
+        `${cacheFilePath} が見つからないため、新しいファイルを作成します。`,
+      );
+      fs.writeFileSync(cacheFilePath, "");
+    }
 
     if (/^\S+$/.test(resultFilePath)) {
       if (!fs.existsSync(resultFilePath)) {
@@ -77,11 +88,15 @@ export class ComboRakutenRouter {
           {},
           `ファイルが存在しなかった為、${resultFilePath} が新規作成されました。`,
         );
-      }else {
-        alreadyChecked = fs
+      } else {
+        alreadyChecked.push(...fs
           .readFileSync(resultFilePath, { encoding: "utf-8" })
-          .split("\n").map((data) => data.trim().split(":")[0]);
-        this.logger.info({}, `${resultFilePath} に既にチェック済みのComboがあるため復元しました。`);
+          .split("\n")
+          .map((data) => data.trim().split(":")[0]));
+        this.logger.info(
+          {},
+          `${resultFilePath} に既にチェック済みのComboがあるため復元しました。`,
+        );
       }
     } else {
       this.logger.error({}, "正しいファイルパスを入力してください");
@@ -128,6 +143,8 @@ export class ComboRakutenRouter {
         });
       }
 
+      console.log(alreadyChecked)
+
       for (let i = 0, len = comboResult.length; i < len; i++) {
         if (alreadyChecked.includes(comboResult[i].username)) {
           this.logger.info(
@@ -147,9 +164,16 @@ export class ComboRakutenRouter {
           this.enogu,
           this.loggerMessages,
           this.config,
-        ).check(comboResult[i].username, comboResult[i].password, withProxy, proxyContent);
+        ).check(
+          comboResult[i].username,
+          comboResult[i].password,
+          withProxy,
+          proxyContent,
+        );
 
         alreadyChecked.push(comboResult[i].username);
+
+        fs.appendFileSync(cacheFilePath, `${comboResult[i].username}\n`);
 
         try {
           JSON.parse(result.message);

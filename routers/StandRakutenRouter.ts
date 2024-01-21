@@ -69,7 +69,12 @@ export class StandRakutenRouter {
     }
   }
 
-  async check(username: string, password: string, withProxy: boolean, proxyContent: string[]): Promise<RouterResult> {
+  async check(
+    username: string,
+    password: string,
+    withProxy: boolean,
+    proxyContent: string[],
+  ): Promise<RouterResult> {
     this.logger.info({}, "起動中・・");
 
     const args = [
@@ -80,17 +85,17 @@ export class StandRakutenRouter {
       "--no-sandbox",
       "--no-zygote",
       "--single-process",
-    ]
+    ];
 
     if (withProxy) {
-      args.push(`--proxy-server=${proxyContent[Math.floor(Math.random() * proxyContent.length)]}`)
+      args.push(
+        `--proxy-server=${proxyContent[Math.floor(Math.random() * proxyContent.length)]}`,
+      );
     }
 
     const browser = await puppeteer.launch({
       headless: "new",
-      args: [
-        ...args
-      ],
+      args: [...args],
     });
 
     const result: {
@@ -289,7 +294,7 @@ export class StandRakutenRouter {
             },
           ],
         };
-      } catch (error) { 
+      } catch (error) {
         const bodySelector = "body";
 
         await page.waitForSelector(bodySelector);
@@ -297,7 +302,7 @@ export class StandRakutenRouter {
         const body = await page.evaluate(
           (bodySelector) => document.body.innerHTML,
           bodySelector,
-        )
+        );
 
         if (body.includes("認証コード")) {
           this.logger.error({}, "IP 規制");
