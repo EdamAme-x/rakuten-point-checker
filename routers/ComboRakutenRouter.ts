@@ -286,8 +286,9 @@ export class ComboRakutenRouter {
         if (filter.use) {
           const point = JSON.parse(result.message).point;
           const rakutenMobile = JSON.parse(result.message).some.find(file => file.name === "Rakuten Mobile").value === 'Mobile会員' ?? false;
+          const rakutenCash = JSON.parse(result.message).some.find(file => file.name === "楽天キャッシュ").value ?? 0;
 
-          if ((filter.point.use && parseInt(point) > filter.point.value) || (filter.rakutenMobile.use && rakutenMobile === filter.rakutenMobile.value)) {
+          if ((filter.point.use && parseInt(point) > filter.point.value) || (filter.rakutenMobile.use && rakutenMobile === filter.rakutenMobile.value) || (filter.rakutenCash.use && parseInt(rakutenCash) > filter.rakutenCash.value)) {
             this.logger.info(
               {},
               `(${i + 1}/${len}) ${comboResult[i].username}:${comboResult[i].password} がフィルターによりヒットしました。`,
