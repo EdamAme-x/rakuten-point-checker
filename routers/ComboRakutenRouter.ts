@@ -106,11 +106,15 @@ export class ComboRakutenRouter {
     const filter = {
       point: {
         use: false,
-        value: 0
+        value: 1
       },
       rakutenMobile: {
         use: false,
         value: true
+      },
+      rakutenCash: {
+        use: false,
+        value: 1
       },
       use: false
     }
@@ -166,6 +170,26 @@ export class ComboRakutenRouter {
       }
 
       this.loggerMessages.blank();
+
+      const useRakutenCash = (await new inputManager(
+        "Rakuten CashのFilterを使用し、ヒットしたら止めるようにしますか？ (y/N): ",
+      ).waitInput()).toUpperCase();
+
+      if (useRakutenCash === "Y") {
+        filter.rakutenCash.use = true;
+        const _value = parseInt(await new inputManager(
+          "Rakuten CashのFilter値を入力してください (X以上) : ",
+        ).waitInput());
+
+        if (!isNaN(_value)) {
+          filter.rakutenCash.value = _value;
+        }else {
+          this.logger.info({}, "入力値が不正なため、" + filter.rakutenCash.value + "以上に設定されました。");
+        }
+      }else {
+        filter.rakutenCash.use = false;
+        this.logger.info({}, "Rakuten CashのFilterは使用されません");
+      }
     }
     
     if (/^\S+$/.test(comboFilePath) && fs.existsSync(comboFilePath)) {

@@ -110,7 +110,14 @@ export class StandRakutenRouter {
     };
 
     this.logger.info({}, "ページの読み込み中・・");
-    const page = await browser.newPage();
+    const page = await browser.newPage().then((page) => {
+      return page;
+    }).catch((e) => {
+      this.logger.error({}, "リクエストの停滞 再起動中・・・");
+      return browser.newPage().then((page) => {
+        return page;
+      });
+    });
     page.setUserAgent(
       "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" +
         Math.floor(Math.random() * 200) +
@@ -280,6 +287,24 @@ export class StandRakutenRouter {
           myStatus = myStatusText.trim();
         }
 
+        let cash = "0";
+
+        const cashSelector = "#mystatus_r_cash";
+
+        await page.waitForSelector(cashSelector, { timeout: 5000 });
+
+        const cashText = await page.evaluate((cashSelector) => {
+          const cash = Array.from(
+            document.querySelectorAll(cashSelector),
+          )[0];
+
+          return cash.innerHTML.trim();
+        }, cashSelector);
+
+        if (cashText) {
+          cash = cashText;
+        }
+
         return {
           success: true,
           point: point,
@@ -292,6 +317,10 @@ export class StandRakutenRouter {
               name: "Rakuten Mobile",
               value: isRakutenMobile ? "Mobile会員" : "Mobile未会員",
             },
+            {
+              name: "楽天キャッシュ",
+              value: cash,
+            }
           ],
         };
       } catch (error) {
