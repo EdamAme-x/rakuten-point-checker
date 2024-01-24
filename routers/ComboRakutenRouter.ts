@@ -290,9 +290,9 @@ export class ComboRakutenRouter {
           .join(":")}`.replace(/\n/gm, "")
 
         if (filter.use) {
-          const point = JSON.parse(result.message).point;
+          const point = JSON.parse(result.message).point.replace(/\,/, "");
           const rakutenMobile = JSON.parse(result.message).some.find(file => file.name === "Rakuten Mobile").value === 'Mobile会員' ?? false;
-          const rakutenCash = JSON.parse(result.message).some.find(file => file.name === "楽天キャッシュ").value ?? 0;
+          const rakutenCash = JSON.parse(result.message).some.find(file => file.name === "楽天キャッシュ").value.replace(/\,/, "") ?? 0;
 
           if ((filter.point.use && parseInt(point) > filter.point.value) || (filter.rakutenMobile.use && rakutenMobile === filter.rakutenMobile.value) || (filter.rakutenCash.use && parseInt(rakutenCash) > filter.rakutenCash.value)) {
             this.logger.info(

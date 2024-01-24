@@ -112,11 +112,9 @@ export class StandRakutenRouter {
     this.logger.info({}, "ページの読み込み中・・");
     const page = await browser.newPage().then((page) => {
       return page;
-    }).catch((e) => {
+    }).catch(async (e) => {
       this.logger.error({}, "リクエストの停滞 再起動中・・・");
-      return browser.newPage().then((page) => {
-        return page;
-      });
+      return await browser.newPage()
     });
     page.setUserAgent(
       "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" +
@@ -228,7 +226,7 @@ export class StandRakutenRouter {
       try {
         const pointSelector =
           "#wrapper > div:nth-child(9) > div > ul > li:nth-child(3) > div > div:nth-child(2) > a > span > div > div > div";
-        await page.waitForSelector(pointSelector, { timeout: 5000 });
+        await page.waitForSelector(pointSelector, { timeout: 7500 });
         let point = "0";
 
         const pointText = await page.evaluate((pointSelector) => {

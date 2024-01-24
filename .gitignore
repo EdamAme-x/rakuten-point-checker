@@ -1,5 +1,6 @@
 node_modules
 tmp/*
+tmp*/*
 logs/*
 _main.ts
 proxies.txt
