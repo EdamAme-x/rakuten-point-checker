@@ -226,6 +226,12 @@ export class ComboRakutenRouter {
         const username = splitLine[0].trim();
         splitLine.shift();
         const password = splitLine.join(":").trim();
+
+        if (password.length < 8) {
+          this.logger.warn({}, `(${i + 1}/${len}) ${splitLine.join(":")} 形式が違うComboがスキップされました。`);
+          continue;
+        }
+
         comboResult.push({
           username,
           password,
