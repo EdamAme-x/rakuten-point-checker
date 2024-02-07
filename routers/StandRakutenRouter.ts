@@ -245,10 +245,19 @@ export class StandRakutenRouter {
 
         const mobileSelector =
           "#wrapper > div:nth-child(19) > div > div > div > div > div > div > div > div > div.swiper-slide.swiper-slide-next > div > div > img";
+        let mobileSuccess = true;
 
-        await page.waitForSelector(mobileSelector, { timeout: 5000 });
+        await page.waitForSelector(mobileSelector, { timeout: 5000 }).catch(
+          () => {
+            mobileSuccess = false;
+          },
+        );
 
         const isRakutenMobileBool = await page.evaluate((mobileSelector) => {
+          if (!mobileSuccess) {
+            return false;
+          }
+
           const isRakutenMobile = Array.from(
             document.querySelectorAll(mobileSelector),
           )[0];
