@@ -253,20 +253,20 @@ export class StandRakutenRouter {
           },
         );
 
-        const isRakutenMobileBool = await page.evaluate((mobileSelector) => {
-          if (!mobileSuccess) {
-            return false;
-          }
+        let isRakutenMobileBool = false;
 
-          const isRakutenMobile = Array.from(
-            document.querySelectorAll(mobileSelector),
-          )[0];
-
-          return isRakutenMobile.getAttribute("src") ===
-            "https://r.r10s.jp/com/inc/home/20080930/ris/img/spu_icon/status_change.svg"
-            ? false
-            : true;
-        }, mobileSelector);
+        if (mobileSuccess) {
+          isRakutenMobileBool = await page.evaluate((mobileSelector) => {
+            const isRakutenMobile = Array.from(
+              document.querySelectorAll(mobileSelector),
+            )[0];
+  
+            return isRakutenMobile.getAttribute("src") ===
+              "https://r.r10s.jp/com/inc/home/20080930/ris/img/spu_icon/status_change.svg"
+              ? false
+              : true;
+          }, mobileSelector);
+        }
 
         if (isRakutenMobileBool) {
           isRakutenMobile = isRakutenMobileBool;
